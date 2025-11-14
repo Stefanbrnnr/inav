@@ -1,0 +1,39 @@
+name: Build iNav BRENNER_H7
+
+on:
+  workflow_dispatch:       # Manuell starten
+  push:
+    paths:
+      - "src/**"
+      - "board/**"
+      - ".github/workflows/build-brenner-h7.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            git \
+            cmake \
+            ninja-build \
+            gcc-arm-none-eabi \
+            binutils-arm-none-eabi \
+            python3
+
+      - name: Build firmware
+        run: |
+          ./build.sh BRENNER_H7
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: inav_BRENNER_H7_firmware
+          path: build/BRENNER_H7/*
