@@ -1,35 +1,40 @@
-name: Build iNav MATEKH743
+name: Build iNav Firmware
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          submodules: true
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            cmake \
-            ninja-build \
-            gcc-arm-none-eabi \
-            binutils-arm-none-eabi
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          ninja-build \
+          build-essential \
+          cmake \
+          git \
+          gcc-arm-none-eabi \
+          binutils-arm-none-eabi \
+          libnewlib-arm-none-eabi \
+          libstdc++-arm-none-eabi-newlib
+        
+    - name: Build firmware
+      run: |
+        cd src
+        ./inav_build.sh -p MATEKH743
 
-      - name: Build firmware (native)
-        run: |
-          chmod +x build.sh
-          ./build.sh -n MATEKH743
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: MATEKH743_firmware
-          path: build/MATEKH743/**
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: iNav-firmware
+        path: src/build/
