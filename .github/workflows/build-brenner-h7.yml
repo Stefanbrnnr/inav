@@ -1,11 +1,15 @@
 name: Build iNav BRENNER_H7
 
 on:
-  workflow_dispatch:       # Manuell starten
+  workflow_dispatch:
   push:
+    branches:
+      - master
     paths:
       - "src/**"
-      - "board/**"
+      - "boards/**"
+      - "cmake/**"
+      - "scripts/**"
       - ".github/workflows/build-brenner-h7.yml"
 
 jobs:
@@ -13,27 +17,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # -------------------------------
+      # Checkout the repository
+      # -------------------------------
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
-      - name: Install dependencies
+      # -------------------------------
+      # Install Dependencies
+      # -------------------------------
+      - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
-            git \
             cmake \
             ninja-build \
             gcc-arm-none-eabi \
             binutils-arm-none-eabi \
-            python3
+            python3 \
+            git
 
-      - name: Build firmware
+      # -------------------------------
+      # Show debug info
+      # -------------------------------
+      - name: Debug target directory
         run: |
-          ./build.sh BRENNER_H7
+          echo "Listing target folders:"
+          ls -R src/main/target
 
+      # -------------------------------
+      # Build firmware (native mode, NO DOCKER)
+      # -------------------------------
+      - name: Build BRENNER_H7 (native)
+        run: |
+          chmod +x build.sh
+          ./build.sh -n BRENNER_H7
+
+      # -------------------------------
+      # Upload firmware
+      # -------------------------------
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
           name: inav_BRENNER_H7_firmware
-          path: build/BRENNER_H7/*
+          path: build/BRENNER_H7/**
